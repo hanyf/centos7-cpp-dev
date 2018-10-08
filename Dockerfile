@@ -1,5 +1,7 @@
 FROM centos:7
 
+MAINTAINER Yanfei Han <kalerfu@me.com>
+
 RUN yum update -y
 
 RUN yum install -y 	centos-release-scl \
@@ -21,7 +23,16 @@ RUN source scl_source enable devtoolset-7; scl enable devtoolset-7 bash \
 	&& wget https://cmake.org/files/v3.12/cmake-3.12.3.tar.gz \
 	&& tar xvf cmake-3.12.3.tar.gz && cd cmake-3.12.3 && ./bootstrap --prefix=/usr/local && make && make install && cd .. && rm -rf cmake-3.12.3*
 
-RUN useradd builder -u 1000 -m -G users,wheel
+# Make sudo work
+ARG SUDO_USER=builder
+ARG SUDO_USER_PASS=builder
+RUN yum install sudo -y \
+	&& useradd -g wheel ${SUDO_USER} \
+	&& echo "${SUDO_USER}:${SUDO_USER_PASS}" | chpasswd \
+	&& sed -i -e 's/^\(%wheel\s\+.\+\)/#\1/gi' /etc/sudoers \
+	&& echo -e '\n%wheel ALL=(ALL) ALL' >> /etc/sudoers \
+	&& echo -e '\nDefaults:root   !requiretty' >> /etc/sudoers \
+	&& echo -e '\nDefaults:%wheel !requiretty' >> /etc/sudoers
 
 USER builder
 
