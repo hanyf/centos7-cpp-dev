@@ -1,6 +1,6 @@
 FROM centos:7
 
-MAINTAINER Yanfei Han <kalerfu@me.com>
+MAINTAINER Yanfei Han <kalerfu@gmail.com>
 
 RUN yum update -y
 
@@ -28,11 +28,14 @@ ARG SUDO_USER=builder
 ARG SUDO_USER_PASS=builder
 RUN yum install sudo -y \
 	&& useradd -g wheel ${SUDO_USER} \
+	&& chmod 740 /etc/sudoers \
 	&& echo "${SUDO_USER}:${SUDO_USER_PASS}" | chpasswd \
 	&& sed -i -e 's/^\(%wheel\s\+.\+\)/#\1/gi' /etc/sudoers \
-	&& echo -e '\n%wheel ALL=(ALL) ALL' >> /etc/sudoers \
+	&& echo '${SUDO_USER} ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
+	&& echo -e '\n%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
 	&& echo -e '\nDefaults:root   !requiretty' >> /etc/sudoers \
-	&& echo -e '\nDefaults:%wheel !requiretty' >> /etc/sudoers
+	&& echo -e '\nDefaults:%wheel !requiretty' >> /etc/sudoers \
+	&& chmod 440 /etc/sudoers
 
 USER builder
 
